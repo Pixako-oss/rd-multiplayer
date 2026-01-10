@@ -100,6 +100,10 @@ public class Player {
         if (Keyboard.isKeyDown(Keyboard.KEY_A) || Keyboard.isKeyDown(Keyboard.KEY_LEFT)) strafe--;
         if (Keyboard.isKeyDown(Keyboard.KEY_D) || Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) strafe++;
 
+        if ((Keyboard.isKeyDown(Keyboard.KEY_SPACE) || Keyboard.isKeyDown(Keyboard.KEY_LWIN)) && this.onGround) {
+            this.motionY = 0.12F;
+        }
+
         boolean sprinting = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL);
         float speed = sprinting ? 0.08F : 0.04F; // sprintSpeed : groundSpeed
 
