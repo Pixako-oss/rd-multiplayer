@@ -23,7 +23,7 @@ dependencies {
 
 tasks.register<JavaExec>("runClient") {
     jvmArgs = listOf("-Dorg.lwjgl.librarypath=${project.projectDir.toPath()}\\run\\natives")
-    mainClass.set("client.RubyDung")
+    mainClass.set("client.Minecraft")
     classpath = sourceSets["main"].runtimeClasspath
     workingDir = file("${project.projectDir.toPath()}\\run")
     dependsOn("extractNatives")

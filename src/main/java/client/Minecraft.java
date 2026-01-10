@@ -3,6 +3,7 @@ package client;
 import client.level.Chunk;
 import client.level.Level;
 import client.level.LevelRenderer;
+import client.net.SocketClient;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
@@ -11,6 +12,7 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 
 import javax.swing.*;
+import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
@@ -18,7 +20,10 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.util.glu.GLU.gluPerspective;
 import static org.lwjgl.util.glu.GLU.gluPickMatrix;
 
-public class RubyDung implements Runnable {
+public class Minecraft implements Runnable {
+
+
+    SocketClient socket = new SocketClient("localhost", 9090);
 
     private final Timer timer = new Timer(60);
 
@@ -40,6 +45,9 @@ public class RubyDung implements Runnable {
     private final IntBuffer viewportBuffer = BufferUtils.createIntBuffer(16);
     private final IntBuffer selectBuffer = BufferUtils.createIntBuffer(2000);
     private HitResult hitResult;
+
+    public Minecraft() throws IOException {
+    }
 
     /**
      * Initialize the game.
@@ -389,7 +397,7 @@ public class RubyDung implements Runnable {
      *
      * @param args Program arguments (unused)
      */
-    public static void main(String[] args) {
-        new Thread(new RubyDung()).start();
+    public static void main(String[] args) throws IOException {
+        new Thread(new Minecraft()).start();
     }
 }
