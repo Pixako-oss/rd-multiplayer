@@ -6,18 +6,31 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-public class SocketClient {
-    public SocketClient(String host, int port) throws IOException {
-        Socket socket = new Socket(host, port);
+public class SocketClient implements Runnable {
+    private final String host;
+    private final int port;
 
-        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    public SocketClient(String host, int port){
+        this.host = host;
+        this.port = port;
+    }
 
-        out.println("This is a test msg");
+    @Override
+    public void run() {
+        try {
+            Socket socket = new Socket(host, port);
 
-        String response = in.readLine();
-        System.out.println("Server: " + response);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-        socket.close();
+            out.println("This is a test msg");
+
+            String response = in.readLine();
+            System.out.println("Server: " + response);
+
+            socket.close();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -24,6 +24,7 @@ public class Minecraft implements Runnable {
 
 
     SocketClient socket = new SocketClient("localhost", 9090);
+    Thread socketThread = new Thread(socket);
 
     private final Timer timer = new Timer(60);
 
@@ -107,6 +108,7 @@ public class Minecraft implements Runnable {
      */
     @Override
     public void run() {
+        socketThread.start();
         try {
             // Initialize the game
             init();
