@@ -147,6 +147,7 @@ public class Minecraft implements Runnable {
         Mouse.destroy();
         Keyboard.destroy();
         Display.destroy();
+        System.exit(0);
     }
 
     /**
