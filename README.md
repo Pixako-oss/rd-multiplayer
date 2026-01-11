@@ -12,5 +12,6 @@ Work in progress...
 | 0x05 | BLOCK_PLACE   | C2S / S2C | `int x, int y, int z`                                               | Place a block. Server broadcasts to all clients.       |
 | 0x06 | REQUEST_LEVEL | C2S       | _none_                                                              | Client requests for level data.                        |
 | 0x07 | LEVEL_DATA    | S2C       | `int width, int height, int depth, int length, byte[length] blocks` | Server sends full level data.                          |
-| 0x07 | CHAT          | C2S / S2C | `utf8 author, utf8 message`                                         | Send a chat message. Server broadcasts to all clients. |
-| 0x07 | CHAT          | C2S / S2C | `utf8 author, utf8 message`                                         | Send a chat message. Server broadcasts to all clients. |
+| 0x08 | CHAT          | C2S / S2C | `utf8 author, utf8 message`                                         | Send a chat message. Server broadcasts to all clients. |
+| 0x09 | KEEPALIVE     | C2S / S2C | `long timestamp`                                                    | Measure ping & keep connection alive.                  |
+| 0x10 | CONNECTION    | S2C       | `int type (0: join, 1: leave), utf8 username`                       | Server sends connection messages.                      |
