@@ -13,6 +13,7 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.FloatBuffer;
@@ -48,8 +49,11 @@ public class Minecraft implements Runnable {
     public Level level;
     public LevelRenderer levelRenderer;
     private Player player;
+    private FontRenderer font;
+    private Font minecraftFont;
 
     private int crosshairTex;
+    private int fps;
 
     private final FloatBuffer fogColor = BufferUtils.createFloatBuffer(4);
 
@@ -124,6 +128,14 @@ public class Minecraft implements Runnable {
         glEnable(GL_CULL_FACE);
         glDepthFunc(GL_LEQUAL);
 
+        try (InputStream in = FontRenderer.class.getResourceAsStream("/client/fonts/Minecraft.ttf")) {
+            minecraftFont = Font.createFont(Font.TRUETYPE_FONT, in).deriveFont(16f);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        font = new FontRenderer(minecraftFont);
+
         // Grab mouse cursor
         Mouse.setGrabbed(true);
     }
@@ -177,6 +189,7 @@ public class Minecraft implements Runnable {
                 // Print FPS every second
                 while (System.currentTimeMillis() >= lastTime + 1000L) {
                     System.out.println(frames + " fps, " + Chunk.updates);
+                    fps = frames;
                     Chunk.updates = 0;
                     lastTime += 1000L;
                     frames = 0;
@@ -413,6 +426,7 @@ public class Minecraft implements Runnable {
             glDisable(GL_FOG);
 
             renderCrosshair();
+            renderHUD();
 
         } else {
             glClearColor(0, 0, 0, 1);
@@ -420,6 +434,38 @@ public class Minecraft implements Runnable {
         }
 
         Display.update();
+    }
+
+    private void renderHUD() {
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(0, width, height, 0, -1, 1);
+
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4f(1f, 1f, 1f, 1f);
+
+        font.drawString(String.format("XYZ: %.0f, %.0f, %.0f", player.x, player.y, player.z),5, 1, true);
+        font.drawString("FPS: " + fps, 5, 21, true);
+
+        Textures.bind(0); //reset the bind shi otherwise it breaks
+
+        glDisable(GL_BLEND);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
+
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
     }
 
     private void renderCrosshair() {
