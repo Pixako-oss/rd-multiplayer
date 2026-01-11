@@ -4,6 +4,7 @@ import client.level.Level;
 import client.phys.AABB;
 import org.lwjgl.input.Keyboard;
 
+import java.io.IOException;
 import java.util.List;
 
 public class Player {
@@ -80,7 +81,7 @@ public class Player {
         this.xRotation = Math.min(90.0F, this.xRotation);
     }
 
-    public void tick() {
+    public void tick() throws IOException {
         // Store previous position
         this.prevX = this.x;
         this.prevY = this.y;
@@ -90,19 +91,33 @@ public class Player {
         float strafe = 0.0F;
         float vertical = 0.0F;
 
-        // Reset the position of the player
-        if (Keyboard.isKeyDown(Keyboard.KEY_R)) { // R
-            resetPosition();
+        while (Keyboard.next()) {
+            if (Keyboard.getEventKeyState()) {
+                int key = Keyboard.getEventKey();
+
+                if (key == Keyboard.KEY_T && !Minecraft.mc.chat.toggled) {
+                    Minecraft.mc.chat.setToggled(true);
+                    return;
+                }
+
+                if (Minecraft.mc.chat.toggled) {
+                    char c = Keyboard.getEventCharacter();
+                    Minecraft.mc.chat.handleKey(key, c);
+                }
+            }
         }
 
-        // Player movement
-        if (Keyboard.isKeyDown(Keyboard.KEY_W) || Keyboard.isKeyDown(Keyboard.KEY_UP)) forward--;
-        if (Keyboard.isKeyDown(Keyboard.KEY_S) || Keyboard.isKeyDown(Keyboard.KEY_DOWN)) forward++;
-        if (Keyboard.isKeyDown(Keyboard.KEY_A) || Keyboard.isKeyDown(Keyboard.KEY_LEFT)) strafe--;
-        if (Keyboard.isKeyDown(Keyboard.KEY_D) || Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) strafe++;
 
-        if ((Keyboard.isKeyDown(Keyboard.KEY_SPACE) || Keyboard.isKeyDown(Keyboard.KEY_LWIN)) && this.onGround) {
-            this.motionY = 0.12F;
+        if(!Minecraft.mc.chat.toggled) {
+            // Player movement
+            if (Keyboard.isKeyDown(Keyboard.KEY_W) || Keyboard.isKeyDown(Keyboard.KEY_UP)) forward--;
+            if (Keyboard.isKeyDown(Keyboard.KEY_S) || Keyboard.isKeyDown(Keyboard.KEY_DOWN)) forward++;
+            if (Keyboard.isKeyDown(Keyboard.KEY_A) || Keyboard.isKeyDown(Keyboard.KEY_LEFT)) strafe--;
+            if (Keyboard.isKeyDown(Keyboard.KEY_D) || Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) strafe++;
+
+            if ((Keyboard.isKeyDown(Keyboard.KEY_SPACE) || Keyboard.isKeyDown(Keyboard.KEY_LWIN)) && this.onGround) {
+                this.motionY = 0.12F;
+            }
         }
 
         boolean sprinting = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL);

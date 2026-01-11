@@ -2,32 +2,45 @@ package client.net;
 
 import client.Minecraft;
 import global.Packets;
+import server.Server;
 
 import java.io.*;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 public class SocketClient implements Runnable {
     private final String host;
     private final int port;
-    public static DataOutputStream out;
+    private final String username;
+    private Socket socket;
+    private static DataOutputStream out;
+    private DataInputStream in;
 
-    public SocketClient(String host, int port){
+    public SocketClient(String host, int port, String username){
         this.host = host;
         this.port = port;
+        this.username = username;
     }
 
     @Override
     public void run() {
         try {
-            Socket socket = new Socket(host, port);
+            socket = new Socket(host, port);
+            in = new DataInputStream(socket.getInputStream());
+            out = new DataOutputStream(socket.getOutputStream());
 
-            DataInputStream in = new DataInputStream(socket.getInputStream());
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+            out.writeByte(Packets.AUTH_REQUEST);
+            out.writeUTF(username);
+            out.flush();
 
-            SocketClient.out = out;
+            byte response = in.readByte();
+            if (response != Packets.AUTH_SUCCESS) {
+                System.err.println("Authentication failed!");
+                socket.close();
+                return;
+            }
 
-            //request level from server
+            System.out.println("Authenticated successfully as " + username);
+
             out.writeByte(Packets.REQUEST_LEVEL);
             out.flush();
 
@@ -69,6 +82,12 @@ public class SocketClient implements Runnable {
                         break;
                     }
 
+                    case Packets.CHAT: {
+                        String author = in.readUTF();
+                        String message = in.readUTF();
+                        Minecraft.mc.chat.addMessage(author, message);
+                        break;
+                    }
 
                     default:
                         System.err.println("Unknown packet: " + packetId);
@@ -76,12 +95,9 @@ public class SocketClient implements Runnable {
                 }
             }
 
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
-
     }
 
     public static void sendBlock(int packet, int x, int y, int z) throws IOException {
@@ -92,4 +108,14 @@ public class SocketClient implements Runnable {
         out.flush();
     }
 
+    public static void sendChat(String author, String message) throws IOException {
+        out.writeByte(Packets.CHAT);
+        out.writeUTF(author);
+        out.writeUTF(message);
+        out.flush();
+    }
+
+    public boolean isConnected() {
+        return socket != null && socket.isConnected() && !socket.isClosed();
+    }
 }

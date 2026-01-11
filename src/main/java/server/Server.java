@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Server {
     public static Level level;
 
-    private static final Set<DataOutputStream> clients = ConcurrentHashMap.newKeySet();
+    private static final Set<Client> clients = ConcurrentHashMap.newKeySet();
 
     public static void main(String args[]) throws IOException {
         level = new Level(256, 256, 64);
@@ -38,12 +38,49 @@ public class Server {
     private static void handleClient(Socket socket) {
         DataInputStream in = null;
         DataOutputStream out = null;
+        Client client = null;
 
         try {
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
 
-            clients.add(out);
+            boolean authenticated = false;
+            while (!authenticated) {
+                byte packetId = in.readByte();
+                if (packetId == Packets.AUTH_REQUEST) {
+                    String username = in.readUTF().trim();
+
+                    if (username.length() < 3 || username.length() > 15) {
+                        out.writeByte(Packets.AUTH_FAILED);
+                        out.flush();
+                        socket.close();
+                        return;
+                    }
+
+                    boolean exists = clients.stream()
+                            .anyMatch(c -> c.getUsername().equalsIgnoreCase(username));
+                    if (exists) {
+                        out.writeByte(Packets.AUTH_FAILED);
+                        out.flush();
+                        socket.close();
+                        return;
+                    }
+
+                    out.writeByte(Packets.AUTH_SUCCESS);
+                    out.flush();
+
+                    client = new Client(username, socket, out);
+                    clients.add(client);
+
+                    System.out.println("client authenticated: " + username);
+                    authenticated = true;
+                } else {
+                    out.writeByte(Packets.AUTH_FAILED);
+                    out.flush();
+                    socket.close();
+                    return;
+                }
+            }
 
             while (true) {
                 byte packetId = in.readByte();
@@ -75,26 +112,33 @@ public class Server {
                         break;
                     }
 
+                    case Packets.CHAT: {
+                        String author = in.readUTF();
+                        String message = in.readUTF();
+                        broadcastChat(author, message);
+                        break;
+                    }
+
                     default:
-                        System.err.println("Unknown packet id: " + packetId);
+                        System.err.println("unknown packet id: " + packetId);
                         break;
                 }
             }
 
         } catch (IOException e) {
-            System.out.println("Client disconnected.");
+            System.out.println("client disconnected: " + (client != null ? client.getUsername() : "unknown"));
         } finally {
-            if (out != null) {
-                clients.remove(out);
-            }
+            if (client != null) clients.remove(client);
             try {
                 socket.close();
             } catch (IOException ignored) {}
         }
     }
 
+
     private static void broadcastBlock(byte type, int x, int y, int z) {
-        for (DataOutputStream out : clients) {
+        for (Client client : clients) {
+            DataOutputStream out = client.getOut();
             try {
                 out.writeByte(type);
                 out.writeInt(x);
@@ -105,8 +149,20 @@ public class Server {
         }
     }
 
+    private static void broadcastChat(String author, String message) {
+        for (Client client : clients) {
+            DataOutputStream out = client.getOut();
+            try {
+                out.writeByte(Packets.CHAT);
+                out.writeUTF(author);
+                out.writeUTF(message);
+                out.flush();
+            } catch (IOException ignored) {}
+        }
+    }
+
     private static void sendLevel(DataOutputStream out) throws IOException {
-        byte[] blocks = level.getBlocks(); 
+        byte[] blocks = level.getBlocks();
         out.writeByte(Packets.LEVEL_DATA);
         out.writeInt(level.getWidth());
         out.writeInt(level.getHeight());
@@ -115,4 +171,30 @@ public class Server {
         out.write(blocks);
         out.flush();
     }
+
+    public static class Client {
+        private final String username;
+        private final Socket socket;
+        private final DataOutputStream out;
+
+        public Client(String username, Socket socket, DataOutputStream out) {
+            this.username = username;
+            this.socket = socket;
+            this.out = out;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public Socket getSocket() {
+            return socket;
+        }
+
+        public DataOutputStream getOut() {
+            return out;
+        }
+
+    }
+
 }

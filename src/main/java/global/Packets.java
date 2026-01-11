@@ -1,8 +1,12 @@
 package global;
 
 public final class Packets {
-    public static final byte BLOCK_BREAK = 1;
-    public static final byte BLOCK_PLACE = 2;
-    public static final byte REQUEST_LEVEL  = 3;
-    public static final byte LEVEL_DATA  = 4;
+    public static final byte AUTH_REQUEST  = 1;
+    public static final byte AUTH_SUCCESS  = 2;
+    public static final byte AUTH_FAILED   = 3;
+    public static final byte BLOCK_BREAK   = 4;
+    public static final byte BLOCK_PLACE   = 5;
+    public static final byte REQUEST_LEVEL = 6;
+    public static final byte LEVEL_DATA    = 7;
+    public static final byte CHAT          = 8;
 }

@@ -1,5 +1,6 @@
 package client;
 
+import client.hud.Chat;
 import client.hud.Crosshair;
 import client.hud.Info;
 import client.level.Chunk;
@@ -29,6 +30,8 @@ import static org.lwjgl.util.glu.GLU.gluPickMatrix;
 public class Minecraft implements Runnable {
     public static Minecraft mc;
 
+    public String username = "aze";
+
     //for versioning and shit
     public static final String GIT_HASH;
     static {
@@ -43,7 +46,7 @@ public class Minecraft implements Runnable {
         GIT_HASH = hash;
     }
 
-    SocketClient socket = new SocketClient("localhost", 9090);
+    SocketClient socket = new SocketClient("localhost", 9090, username);
     Thread socketThread = new Thread(socket);
 
     private final Timer timer = new Timer(60);
@@ -53,6 +56,7 @@ public class Minecraft implements Runnable {
     public Player player;
     private FontRenderer font;
     private Font minecraftFont;
+    public Chat chat;
 
     private Crosshair crosshair;
     private Info info;
@@ -138,6 +142,7 @@ public class Minecraft implements Runnable {
 
         crosshair = new Crosshair(16, "/client/textures/crosshair.png");
         info = new Info(font);
+        chat = new Chat(font, 50, 0, height - 150 - 16, 500, 150);
 
 
 
@@ -163,6 +168,13 @@ public class Minecraft implements Runnable {
     public void run() {
         socketThread.start();
 
+        System.out.println("Waiting for server authentication and level...");
+        while (!socket.isConnected() || !levelUpdatePending) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException ignored) {}
+        }
+
         try {
             // Initialize OpenGL immediately (dummy level)
             init();
@@ -177,7 +189,7 @@ public class Minecraft implements Runnable {
 
         try {
             // Main game loop
-            while (!Keyboard.isKeyDown(1) && !Display.isCloseRequested()) {
+            while (!Display.isCloseRequested()) {
 
                 // Update the timer
                 this.timer.advanceTime();
@@ -212,7 +224,7 @@ public class Minecraft implements Runnable {
     /**
      * Game tick, called exactly 20 times per second
      */
-    private void tick() {
+    private void tick() throws IOException {
         applyPendingLevel();
         this.player.tick();
     }
@@ -433,6 +445,7 @@ public class Minecraft implements Runnable {
 
             crosshair.render(width, height);
             info.render(width, height);
+            chat.render(width, height);
 
         } else {
             glClearColor(0, 0, 0, 1);
