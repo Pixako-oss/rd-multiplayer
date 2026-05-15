@@ -1,7 +1,9 @@
 package client;
 
 import client.level.Level;
+import client.net.SocketClient;
 import client.phys.AABB;
+import global.Packets;
 import org.lwjgl.input.Keyboard;
 
 import java.io.IOException;
@@ -141,6 +143,8 @@ public class Player {
             this.motionX *= 0.8F;
             this.motionZ *= 0.8F;
         }
+
+        SocketClient.sendPos(Packets.POS, x, y, z);
     }
 
     /**

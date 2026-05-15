@@ -135,6 +135,14 @@ public class Server {
                         break;
                     }
 
+                    case Packets.POS: {
+                        double x = in.readDouble();
+                        double y = in.readDouble();
+                        double z = in.readDouble();
+                        broadcastPos(client, x, y, z);
+                        break;
+                    }
+
                     default:
                         System.err.println("unknown packet id: " + packetId);
                         break;
@@ -217,6 +225,21 @@ public class Server {
                 out.writeByte(Packets.CHAT);
                 out.writeUTF(author);
                 out.writeUTF(message);
+                out.flush();
+            } catch (IOException ignored) {}
+        }
+    }
+
+    private static void broadcastPos(Client _client, double x, double y, double z) {
+        for (Client client : clients) {
+            if (client == _client) continue;
+            DataOutputStream out = client.getOut();
+            try {
+                out.writeByte(Packets.POS);
+                out.writeUTF(_client.getUsername());
+                out.writeDouble(x);
+                out.writeDouble(y);
+                out.writeDouble(z);
                 out.flush();
             } catch (IOException ignored) {}
         }

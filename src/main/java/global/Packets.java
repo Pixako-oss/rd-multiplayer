@@ -11,4 +11,5 @@ public final class Packets {
     public static final byte CHAT          = 8;
     public static final byte KEEPALIVE     = 9;
     public static final byte CONNECTION    = 10;
+    public static final byte POS           = 11;
 }

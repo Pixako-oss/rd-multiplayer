@@ -122,6 +122,14 @@ public class SocketClient implements Runnable {
         out.flush();
     }
 
+    public static void sendPos(int packet, double x, double y, double z) throws IOException {
+        out.writeByte(packet);
+        out.writeDouble(x);
+        out.writeDouble(y);
+        out.writeDouble(z);
+        out.flush();
+    }
+
     public static void sendKeepalive(long timestamp) throws IOException {
         out.writeByte(Packets.KEEPALIVE);
         out.writeLong(timestamp);
