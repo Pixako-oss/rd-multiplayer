@@ -9,6 +9,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.prefs.Preferences;
 
 public class Launcher {
 
@@ -45,6 +46,8 @@ public class Launcher {
     }
 
     private static void showLauncher() {
+        Preferences prefs = Preferences.userNodeForPackage(Launcher.class);
+
         JFrame frame = new JFrame();
         frame.setUndecorated(true);
         frame.setSize(300, 200);
@@ -65,7 +68,7 @@ public class Launcher {
         c.gridx = 0; c.gridy = 1; c.gridwidth = 1; c.weightx = 0.2;
         frame.add(ipLabel, c);
 
-        JTextField ipField = new JTextField("localhost");
+        JTextField ipField = new JTextField(prefs.get("ip", "localhost"));
         ipField.setBackground(Color.decode("#141414"));
         ipField.setForeground(Color.WHITE);
         ipField.setCaretColor(Color.WHITE);
@@ -78,7 +81,7 @@ public class Launcher {
         c.gridx = 0; c.gridy = 2; c.weightx = 0.2;
         frame.add(portLabel, c);
 
-        JTextField portField = new JTextField("9090");
+        JTextField portField = new JTextField(prefs.get("port", "9090"));
         portField.setBackground(Color.decode("#141414"));
         portField.setForeground(Color.WHITE);
         portField.setCaretColor(Color.WHITE);
@@ -91,7 +94,7 @@ public class Launcher {
         c.gridx = 0; c.gridy = 3; c.weightx = 0.2;
         frame.add(usernameLabel, c);
 
-        JTextField usernameField = new JTextField("Player");
+        JTextField usernameField = new JTextField(prefs.get("username", "Player"));
         usernameField.setBackground(Color.decode("#141414"));
         usernameField.setForeground(Color.WHITE);
         usernameField.setCaretColor(Color.WHITE);
@@ -133,6 +136,10 @@ public class Launcher {
                 JOptionPane.showMessageDialog(frame, "Username cannot be empty");
                 return;
             }
+
+            prefs.put("ip", ip);
+            prefs.put("port", String.valueOf(port));
+            prefs.put("username", username);
 
             frame.dispose();
             startGame(ip, port, username);
