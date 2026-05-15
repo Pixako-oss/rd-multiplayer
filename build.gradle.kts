@@ -22,18 +22,32 @@ dependencies {
 
 
 tasks.register<JavaExec>("runClient") {
-    jvmArgs = listOf("-Dorg.lwjgl.librarypath=${project.projectDir.toPath()}\\run\\natives")
+    val runDir = project.layout.projectDirectory.dir("run")
+    val nativesDir = runDir.dir("natives")
+
+    jvmArgs = listOf(
+        "-Dorg.lwjgl.librarypath=${nativesDir.asFile.absolutePath}"
+    )
+
     mainClass.set("client.Launcher")
     classpath = sourceSets["main"].runtimeClasspath
-    workingDir = file("${project.projectDir.toPath()}\\run")
+    workingDir = runDir.asFile
+
     dependsOn("extractNatives")
 }
 
 tasks.register<JavaExec>("runServer") {
-    jvmArgs = listOf("-Dorg.lwjgl.librarypath=${project.projectDir.toPath()}\\run\\natives")
+    val runDir = project.layout.projectDirectory.dir("run")
+    val nativesDir = runDir.dir("natives")
+
+    jvmArgs = listOf(
+        "-Dorg.lwjgl.librarypath=${nativesDir.asFile.absolutePath}"
+    )
+
     mainClass.set("server.Server")
     classpath = sourceSets["main"].runtimeClasspath
-    workingDir = file("${project.projectDir.toPath()}\\run")
+    workingDir = runDir.asFile
+
     dependsOn("extractNatives")
 }
 
