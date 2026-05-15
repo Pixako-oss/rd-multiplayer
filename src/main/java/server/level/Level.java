@@ -8,6 +8,7 @@ import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
@@ -72,6 +73,8 @@ public class Level {
      */
     public void save() {
         try {
+            Path path = Paths.get("./server/level.dat");
+            Files.createDirectories(path.getParent());
             DataOutputStream dos = new DataOutputStream(new GZIPOutputStream(Files.newOutputStream(Paths.get("./server/level.dat"))));
             dos.write(this.blocks);
             dos.close();
