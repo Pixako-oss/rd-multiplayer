@@ -11,10 +11,10 @@ public class ClientHandler {
 
     private static final int MAX_USERNAME_LENGTH = 15;
     private static final int MIN_USERNAME_LENGTH = 3;
-    private static final int MAX_MESSAGE_LENGTH  = 256;
+    private static final int MAX_MESSAGE_LENGTH = 256;
 
     public static void handle(Socket socket) {
-        DataInputStream  in = null;
+        DataInputStream in = null;
         DataOutputStream out = null;
         Client client = null;
 
@@ -61,6 +61,7 @@ public class ClientHandler {
                         int x = in.readInt();
                         int y = in.readInt();
                         int z = in.readInt();
+                        if (!AntiCheat.checkBlock(client, x, y, z, false, System.currentTimeMillis())) break;
                         Server.level.setTile(x, y, z, 0);
                         Broadcaster.broadcastBlock(Packets.BLOCK_BREAK, x, y, z);
                         break;
@@ -70,6 +71,7 @@ public class ClientHandler {
                         int x = in.readInt();
                         int y = in.readInt();
                         int z = in.readInt();
+                        if (!AntiCheat.checkBlock(client, x, y, z, true, System.currentTimeMillis())) break;
                         Server.level.setTile(x, y, z, 1);
                         Broadcaster.broadcastBlock(Packets.BLOCK_PLACE, x, y, z);
                         break;
@@ -102,18 +104,19 @@ public class ClientHandler {
                         message = message.replaceAll("[^\\x20-\\x7E]", "");
                         if (message.isEmpty()) break;
 
-                        final String author  = client.getUsername();
+                        final String author = client.getUsername();
                         final String payload = message;
                         Broadcaster.broadcastChat(author, payload);
                         break;
                     }
 
                     case Packets.POS: {
-                        double x   = in.readDouble();
-                        double y   = in.readDouble();
-                        double z   = in.readDouble();
-                        float  yaw = in.readFloat();
-                        int    ping = in.readInt();
+                        double x = in.readDouble();
+                        double y = in.readDouble();
+                        double z = in.readDouble();
+                        float yaw = in.readFloat();
+                        int ping = in.readInt();
+                        client.setLastPos(x, y, z);
                         Broadcaster.broadcastPos(client, x, y, z, yaw, ping);
                         break;
                     }
@@ -137,7 +140,6 @@ public class ClientHandler {
             try { socket.close(); } catch (IOException ignored) {}
         }
     }
-
 
     private static void reject(DataOutputStream out, Socket socket) throws IOException {
         out.writeByte(Packets.AUTH_FAILED);

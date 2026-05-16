@@ -10,6 +10,10 @@ public class Client {
     private final DataOutputStream out;
     private final Object writeLock = new Object();
 
+    private double[] lastPos = null;
+    private double placeTokens = 0.0;
+    private long lastPlaceTime = 0;
+
     public Client(String username, Socket socket, DataOutputStream out) {
         this.username = username;
         this.socket = socket;
@@ -26,8 +30,23 @@ public class Client {
     }
 
     public String getUsername() { return username; }
-    public Socket getSocket()   { return socket; }
+    public Socket getSocket() { return socket; }
     public DataOutputStream getOut() { return out; }
+
+    public double[] getLastPos() { return lastPos; }
+    public void setLastPos(double x, double y, double z) {
+        if (lastPos == null) lastPos = new double[3];
+        lastPos[0] = x;
+        lastPos[1] = y;
+        lastPos[2] = z;
+    }
+
+    public double getPlaceTokens() { return placeTokens; }
+    public long getLastPlaceTime() { return lastPlaceTime; }
+    public void setPlaceTokens(double tokens, long time) {
+        this.placeTokens = tokens;
+        this.lastPlaceTime = time;
+    }
 
     @FunctionalInterface
     public interface PacketWriter {
