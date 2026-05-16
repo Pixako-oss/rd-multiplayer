@@ -1,7 +1,7 @@
 # rd-multiplayer
-The first version of Minecraft, but multi-player!
+The first version of Minecraft, but multiplayer!
 
-Full credits to Notch and the decompile codebase at: [thecodeofnotch/rd-131122](https://github.com/thecodeofnotch/rd-132211).
+Full credits to Notch and the decompiled codebase at: [thecodeofnotch/rd-131122](https://github.com/thecodeofnotch/rd-132211).
 
 Preview video as of <code>58a7142757+</code>:
 <br>
