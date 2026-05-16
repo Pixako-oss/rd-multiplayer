@@ -79,6 +79,9 @@ public class Minecraft implements Runnable {
     public byte[] pendingBlocks = null;
     public boolean levelUpdatePending = false;
 
+    public volatile String loadingText = "";
+    public volatile Color loadingColor = Color.WHITE;
+
     private void applyPendingLevel() {
         if (!levelUpdatePending) return;
         this.level = new client.level.Level(pendingWidth, pendingHeight, pendingDepth);
@@ -159,7 +162,6 @@ public class Minecraft implements Runnable {
             System.exit(0);
         }
 
-        System.out.println("Waiting for level from server...");
         while (!levelUpdatePending) {
             renderLoadingScreen();
             try { Thread.sleep(16); } catch (InterruptedException ignored) {}
@@ -438,13 +440,12 @@ public class Minecraft implements Runnable {
         glTexCoord2f(0, 1); glVertex2f(0, height);
         glEnd();
 
-        String text = "Loading level...";
-        int textWidth = font.getStringWidth(text);
+        int textWidth = font.getStringWidth(loadingText);
         int textHeight = font.getStringHeight();
         int tx = (width  / 2) - (textWidth  / 2);
         int ty = (height / 2) - (textHeight / 2);
         glColor4f(1f, 1f, 1f, 1f);
-        font.drawString(text, tx, ty, true);
+        font.drawString(loadingText, tx, ty, loadingColor, true);
 
         glDisable(GL_BLEND);
         glEnable(GL_DEPTH_TEST);

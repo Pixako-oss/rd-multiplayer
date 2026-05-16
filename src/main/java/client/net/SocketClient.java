@@ -3,6 +3,7 @@ package client.net;
 import client.Minecraft;
 import global.Packets;
 
+import java.awt.*;
 import java.io.*;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -14,8 +15,11 @@ public class SocketClient implements Runnable {
     private Socket socket;
     private static DataOutputStream out;
     private DataInputStream in;
+    public boolean authenticated;
 
     public static final ConcurrentLinkedQueue<int[]> pendingBlocks = new ConcurrentLinkedQueue<>();
+
+    private static final Object writeLock = new Object();
 
     public SocketClient(String host, int port, String username) {
         this.host = host;
@@ -23,28 +27,62 @@ public class SocketClient implements Runnable {
         this.username = username;
     }
 
+    private void setLoading(String text, Color color) {
+        Minecraft.mc.loadingText = text;
+        Minecraft.mc.loadingColor = color;
+    }
+
     @Override
     public void run() {
         try {
+
+            setLoading("Connecting to server...", Color.WHITE);
+
             socket = new Socket(host, port);
+
+            setLoading("Connected to server!", Color.WHITE);
+
             in  = new DataInputStream(socket.getInputStream());
-            out = new DataOutputStream(new java.io.BufferedOutputStream(socket.getOutputStream(), 8192));
+            out = new DataOutputStream(
+                    new BufferedOutputStream(
+                            socket.getOutputStream(),
+                            8192
+                    )
+            );
+
+            setLoading("Creating network streams...", Color.WHITE);
 
             out.writeByte(Packets.AUTH_REQUEST);
             out.writeUTF(username);
             out.flush();
 
+            setLoading("Sending authentication request...", Color.WHITE);
+
             byte response = in.readByte();
+
+            setLoading("Waiting for authentication response...", Color.WHITE);
+
             if (response != Packets.AUTH_SUCCESS) {
                 System.err.println("Authentication failed!");
+
+                setLoading("Authentication failed!", Color.RED);
+
                 socket.close();
                 return;
             }
 
             System.out.println("Authenticated successfully as " + username);
 
+            setLoading("Authentication successful!", Color.GREEN);
+
+            authenticated = true;
+
+            setLoading("Requesting level...", Color.WHITE);
+
             out.writeByte(Packets.REQUEST_LEVEL);
             out.flush();
+
+            setLoading("Waiting for level data...", Color.WHITE);
 
             while (true) {
                 byte packetId = in.readByte();
@@ -55,9 +93,11 @@ public class SocketClient implements Runnable {
                         double x = in.readDouble();
                         double y = in.readDouble();
                         double z = in.readDouble();
+
                         if (Minecraft.mc.player != null) {
                             Minecraft.mc.player.forcePosition(x, y, z);
                         }
+
                         break;
                     }
 
@@ -65,7 +105,9 @@ public class SocketClient implements Runnable {
                         int x = in.readInt();
                         int y = in.readInt();
                         int z = in.readInt();
+
                         pendingBlocks.add(new int[]{x, y, z, 1});
+
                         break;
                     }
 
@@ -73,37 +115,57 @@ public class SocketClient implements Runnable {
                         int x = in.readInt();
                         int y = in.readInt();
                         int z = in.readInt();
+
                         pendingBlocks.add(new int[]{x, y, z, 0});
+
                         break;
                     }
 
                     case Packets.LEVEL_DATA: {
+
+                        setLoading("Receiving level metadata...", Color.WHITE);
+
                         int w   = in.readInt();
                         int h   = in.readInt();
                         int d   = in.readInt();
                         int len = in.readInt();
 
+                        setLoading(
+                                "Downloading world (" + len + " bytes)...",
+                                Color.WHITE
+                        );
+
                         byte[] blocks = new byte[len];
+
                         in.readFully(blocks);
+
+                        setLoading("Applying world...", Color.WHITE);
 
                         Minecraft.mc.pendingWidth  = w;
                         Minecraft.mc.pendingHeight = h;
                         Minecraft.mc.pendingDepth  = d;
                         Minecraft.mc.pendingBlocks = blocks;
                         Minecraft.mc.levelUpdatePending = true;
+
+                        setLoading("Level loaded successfully!", Color.GREEN);
+
                         break;
                     }
 
                     case Packets.CHAT: {
                         String author  = in.readUTF();
                         String message = in.readUTF();
+
                         Minecraft.mc.chat.addMessage(author, message);
+
                         break;
                     }
 
                     case Packets.KEEPALIVE: {
                         long time = in.readLong();
+
                         Minecraft.mc.rtt = System.currentTimeMillis() - time;
+
                         break;
                     }
 
@@ -131,18 +193,22 @@ public class SocketClient implements Runnable {
                         break;
                     }
 
-                    default:
+                    default: {
                         System.err.println("Unknown packet: " + packetId);
                         break;
+                    }
                 }
             }
 
         } catch (IOException e) {
             e.printStackTrace();
+
+            setLoading(
+                    "Connection error: " + e.getMessage(),
+                    Color.RED
+            );
         }
     }
-
-    private static final Object writeLock = new Object();
 
     public static void sendBlock(int packet, int x, int y, int z) throws IOException {
         synchronized (writeLock) {
@@ -184,6 +250,8 @@ public class SocketClient implements Runnable {
     }
 
     public boolean isConnected() {
-        return socket != null && socket.isConnected() && !socket.isClosed();
+        return socket != null
+                && socket.isConnected()
+                && !socket.isClosed();
     }
 }
