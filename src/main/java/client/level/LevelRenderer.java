@@ -214,6 +214,57 @@ public class LevelRenderer implements LevelListener {
         this.tessellator.vertex(x1, y1, z1);
         this.tessellator.vertex(x1, y0, z1);
     }
+    public void renderNameTags(PlayerManager playerManager, Player localPlayer, FontRenderer fontRenderer) {
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_TEXTURE_2D);
+        glDisable(GL_FOG);
+
+        glDepthMask(false);
+        glDisable(GL_CULL_FACE);
+
+        for (Map.Entry<String, client.Position> entry : playerManager.getPlayers().entrySet()) {
+            String name = entry.getKey();
+            client.Position pos = entry.getValue();
+
+            glPushMatrix();
+
+            glTranslated(pos.x, pos.y + 0.7D, pos.z);
+
+            glRotatef(-localPlayer.yRotation, 0.0F, 1.0F, 0.0F);
+            glRotatef(localPlayer.xRotation, 1.0F, 0.0F, 0.0F);
+
+            float scale = 0.015F;
+            glScalef(scale, -scale, scale);
+
+            int textWidth = fontRenderer.getStringWidth(name);
+            int textHeight = fontRenderer.getStringHeight();
+            int xOffset = -textWidth / 2;
+
+            glDisable(GL_TEXTURE_2D);
+            glColor4f(0.0F, 0.0F, 0.0F, 0.25F);
+            glBegin(GL_QUADS);
+            glVertex3f(xOffset - 2, -1, 0);
+            glVertex3f(xOffset + textWidth + 2, -1, 0);
+            glVertex3f(xOffset + textWidth + 2, textHeight + 1, 0);
+            glVertex3f(xOffset - 2, textHeight + 1, 0);
+            glEnd();
+            glEnable(GL_TEXTURE_2D);
+
+            glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            fontRenderer.drawString(name, xOffset, 0, true);
+
+            Textures.bind(0);
+
+            glPopMatrix();
+        }
+
+        glDepthMask(true);
+        glEnable(GL_CULL_FACE);
+        glEnable(GL_FOG);
+        glDisable(GL_BLEND);
+    }
 
     @Override
     public void lightColumnChanged(int x, int z, int minY, int maxY) {
