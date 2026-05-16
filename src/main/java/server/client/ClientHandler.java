@@ -37,6 +37,23 @@ public class ClientHandler {
 
             boolean taken = Server.clients.stream()
                     .anyMatch(c -> c.getUsername().equalsIgnoreCase(username));
+
+            String ip = socket.getInetAddress().getHostAddress();
+
+            long connectionsFromIp = Server.clients.stream()
+                    .filter(c ->
+                            c.getSocket()
+                                    .getInetAddress()
+                                    .getHostAddress()
+                                    .equals(ip))
+                    .count();
+
+            if (connectionsFromIp >= Server.MAX_PER_IP) {
+                System.out.println("Rejected " + username + ": Too many connections from IP " + ip);
+                reject(out, socket);
+                return;
+            }
+
             if (taken) {
                 reject(out, socket);
                 return;
