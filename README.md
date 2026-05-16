@@ -9,6 +9,9 @@ Preview video as of <code>58a7142757+</code>:
   <img src="https://img.youtube.com/vi/5qlTXX0Mn8U/hqdefault.jpg" width="240">
 </a>
 
+## protocl
+Read the socket protocol [here](https://github.com/9aze/rd-multiplayer/blob/main/PROTOCOL.md).
+
 ## installation
 
 ### run/build from source
