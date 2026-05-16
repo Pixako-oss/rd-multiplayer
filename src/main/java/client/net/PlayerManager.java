@@ -9,12 +9,12 @@ public class PlayerManager {
 
     public Map<String, Position> players = new HashMap<>();
 
-    public void updatePlayer(String username, double x, double y, double z, float yaw) {
+    public void updatePlayer(String username, double x, double y, double z, float yaw, int ping) {
         if (players.containsKey(username)) {
             Position p = players.get(username);
             p.x = x; p.y = y; p.z = z; p.yaw = yaw;
         } else {
-            players.put(username, new Position(x, y, z, yaw));
+            players.put(username, new Position(x, y, z, yaw, ping));
         }
     }
 

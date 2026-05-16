@@ -115,7 +115,8 @@ public class SocketClient implements Runnable {
                         double y = in.readDouble();
                         double z = in.readDouble();
                         float yaw = in.readFloat();
-                        Minecraft.mc.getPlayerManager().updatePlayer(username, x, y, z, yaw);
+                        int ping = in.readInt();
+                        Minecraft.mc.getPlayerManager().updatePlayer(username, x, y, z, yaw, ping);
                         break;
                     }
 
@@ -142,13 +143,14 @@ public class SocketClient implements Runnable {
         }
     }
 
-    public static void sendPos(int packet, double x, double y, double z, float yaw) throws IOException {
+    public static void sendPos(int packet, double x, double y, double z, float yaw, int ping) throws IOException {
         synchronized (writeLock) {
             out.writeByte(packet);
             out.writeDouble(x);
             out.writeDouble(y);
             out.writeDouble(z);
             out.writeFloat(yaw);
+            out.writeInt(ping);
             out.flush();
         }
     }

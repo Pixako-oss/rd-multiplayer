@@ -70,7 +70,7 @@ public class Minecraft implements Runnable {
     /**
      * Screen resolution
      */
-    private final int width = 1280;
+    public final int width = 1280;
     private final int height = 720;
 
     /**

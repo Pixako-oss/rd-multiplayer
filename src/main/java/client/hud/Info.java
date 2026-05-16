@@ -1,9 +1,13 @@
 package client.hud;
 
-import client.FontRenderer;
-import client.Minecraft;
-import client.Player;
-import client.Textures;
+import client.*;
+import client.net.PlayerManager;
+import org.lwjgl.input.Keyboard;
+
+import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
@@ -54,6 +58,10 @@ public class Info {
         fontRenderer.drawString("FPS: " + Minecraft.mc.fps, 5, 21, true);
         fontRenderer.drawString("PING: " + Minecraft.mc.rtt, 5, 41, true);
 
+        if(Keyboard.isKeyDown(Keyboard.KEY_TAB)) {
+            drawTablist(fontRenderer);
+        }
+
         Textures.bind(0); //reset the bind shi otherwise it breaks
 
         glDisable(GL_BLEND);
@@ -64,5 +72,57 @@ public class Info {
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
         glMatrixMode(GL_MODELVIEW);
+    }
+
+    private void drawTablist(FontRenderer fontRenderer) {
+        int lineHeight = 20;
+
+        Map<String, Position> tabPlayers = new TreeMap<>(Minecraft.mc.playerManager.getPlayers());
+        tabPlayers.put(Minecraft.mc.username, new Position(0, 0, 0, 0, (int) Minecraft.mc.rtt));
+
+        int widestName = 0;
+        for (Map.Entry<String, Position> player : tabPlayers.entrySet()) {
+            int w = fontRenderer.getStringWidth(player.getKey() + "   " + player.getValue().ping + "ms");
+            if (w > widestName) widestName = w;
+        }
+
+        int x = (Minecraft.mc.width / 2) - (widestName / 2);
+        int y = 10;
+        int totalHeight = tabPlayers.size() * lineHeight;
+        int yPadding = 2;
+        int xPadding = 10;
+
+        glDisable(GL_TEXTURE_2D);
+        glColor4f(0f, 0f, 0f, 0.3f);
+        glBegin(GL_QUADS);
+        glVertex2f(x - xPadding, y - yPadding);
+        glVertex2f(x + widestName + xPadding, y - yPadding);
+        glVertex2f(x + widestName + xPadding, y + totalHeight + yPadding);
+        glVertex2f(x - xPadding,y + totalHeight + yPadding);
+        glEnd();
+        glEnable(GL_TEXTURE_2D);
+
+        for (Map.Entry<String, Position> player : tabPlayers.entrySet()) {
+            String name = player.getKey();
+            String ping = player.getValue().ping + "ms";
+
+            fontRenderer.drawString(name, x, y, Color.WHITE, true);
+
+            int pingX = x + widestName - fontRenderer.getStringWidth(ping);
+
+            Color pingColor;
+
+            if(player.getValue().ping >= 250) {
+                pingColor = Color.RED;
+            } else if(player.getValue().ping >= 150) {
+                pingColor = Color.ORANGE;
+            } else {
+                pingColor = Color.GREEN;
+            }
+
+            fontRenderer.drawString(ping, pingX, y, pingColor, true);
+
+            y += lineHeight;
+        }
     }
 }

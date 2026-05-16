@@ -139,7 +139,8 @@ public class Server {
                         double y = in.readDouble();
                         double z = in.readDouble();
                         float yaw = in.readFloat();
-                        broadcastPos(client, x, y, z, yaw);
+                        int ping = in.readInt();
+                        broadcastPos(client, x, y, z, yaw, ping);
                         break;
                     }
 
@@ -225,7 +226,7 @@ public class Server {
         }
     }
 
-    private static void broadcastPos(Client _client, double x, double y, double z, float yaw) {
+    private static void broadcastPos(Client _client, double x, double y, double z, float yaw, int ping) {
         for (Client client : clients) {
             if (client == _client) continue;
             client.send(o -> {
@@ -235,6 +236,7 @@ public class Server {
                 o.writeDouble(y);
                 o.writeDouble(z);
                 o.writeFloat(yaw);
+                o.writeInt(ping);
             });
         }
     }

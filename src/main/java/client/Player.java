@@ -145,7 +145,7 @@ public class Player {
 
         if (this.x != this.prevX || this.y != this.prevY || this.z != this.prevZ) {
             if (Minecraft.mc.socket.isConnected()) {
-                SocketClient.sendPos(Packets.POS, this.x, this.y, this.z, this.yRotation);
+                SocketClient.sendPos(Packets.POS, this.x, this.y, this.z, this.yRotation, (int) Minecraft.mc.rtt);
             }
 
         }
@@ -230,7 +230,7 @@ public class Player {
 
     public void sendPosition() throws IOException {
         if (Minecraft.mc.socket.isConnected()) {
-            SocketClient.sendPos(Packets.POS, this.x, this.y, this.z, this.yRotation);
+            SocketClient.sendPos(Packets.POS, this.x, this.y, this.z, this.yRotation, (int) Minecraft.mc.rtt);
         }
     }
 }

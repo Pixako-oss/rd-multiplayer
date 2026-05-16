@@ -153,4 +153,13 @@ public class FontRenderer {
         glColor4f(r, g, b, a);
         drawString(text, x, y);
     }
+
+    public int getStringWidth(String text) {
+        int width = 0;
+        for (char c : text.toCharArray()) {
+            if (c < FIRST_CHAR || c > LAST_CHAR) continue;
+            width += charWidth[c];
+        }
+        return width;
+    }
 }
